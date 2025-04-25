@@ -6,7 +6,7 @@
 
 #define W 6
 #define DEBUGLEVEL 0 
-#define PRINT true
+#define PRINT false
 #define EVAL true
 #define sqr(x) ((x) * (x))
 
@@ -46,7 +46,7 @@ const float SECOND_SCALE=1000000000;
 
 bool hasTrue(const bool array[W]){
     for (int i = 0; i<W; i++){
-        if (array[i]!=false){return true;}
+        if (array[i]!=false) return true;
     }
     return 0;
 }
@@ -168,7 +168,7 @@ float variabilitas(const float array[W]){
         totalSquares = totalSquares + sqr(array[i]);
         total = total + array[i];
     }
-    return sqrtf(totalSquares/(float)W)*(float)W/total;
+    return fabsf(sqrtf(totalSquares/(float)W)*(float)W/total);
 }
 float variabilitas2(const float array[W], const bool filter[W]){
     float totalSquares = 0;
@@ -178,7 +178,7 @@ float variabilitas2(const float array[W], const bool filter[W]){
         totalSquares = totalSquares + sqr(array[i]);
         total = total + array[i];
     }
-    return sqrtf(totalSquares/(float)W)*(float)W/total;
+    return fabsf(sqrtf(totalSquares/(float)W)*(float)W/total);
 }
 
 void updateInterpolable(const bool array[W], bool result[W]){
@@ -298,14 +298,56 @@ float special_mean(const float array[W]){
     }
     return total/n;
 }
+struct Output{
+    float mae;
+    float rmse;
+};
+struct Output inner(int, char*[]);
+float _mean(const float *x, const int n){
+    float mean=0;
+    const float _n = (float)n;
+    for (int i=0;i<n;i++){
+        if (!is_nan(x[i])) mean=mean+(x[i]-mean)/_n;
+    }
+    return mean;
+}
+//TODO: _mean and _std takes an array of error metric. however they contain NaN. find out why and what to do
+float _std(const float *x, const int _n){
+    if (_n<=1){
+        return 0;
+    }
+    double mean=0;
+    double var=0;
+    const double n = (double)_n;
+    double n_nans = 0;
+    for (int i=0;i<n;++i){
+        if (is_nan(x[i])){
+            n_nans+=1.0;
+            continue;
+        }
+        const double xi = x[i];
+        const double delta = xi-mean;
+        mean += delta / ((double)i-n_nans+1.0);
+        var += delta*(xi-mean);
+    }
+    return (float)(var/(n-1.0));
+}
+unsigned int hash(const unsigned int x){
+    unsigned int h=x;
+    h *= 0x5bd1e995;
+    h ^= h >> 15;
+    return h;
+}
 int main(int argc, char *argv[]) {
     srand(time(NULL));
-    if (argc != 4) { // Check if a filename was provided
-        fprintf(stderr, "Usage: %s <filename> <corruption rate> <ewm coeff>\n", argv[0]);
+    unsigned int rander=0xdeadbeef^time(NULL);
+    if (argc != 5) { // Check if a filename was provided
+        fprintf(stderr, "Usage: %s <filename> <corruption rate> <ewm coeff> <num runs>\n", argv[0]);
         return 1;
     }
     float p = atof(argv[2]);
     float decay_rate = atof(argv[3]);
+    int n_runs = atoi(argv[4]);
     if ((p<0)||(p>1)){
         fprintf(stderr, "corruption rate must be between 0 and 1\n");
         return 1;
@@ -314,12 +356,41 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "ewm coeff must be between 0 and 1\n");
         return 1;
     }
+    float *mae = malloc(sizeof(float)*n_runs);
+    float *rmse = malloc(sizeof(float)*n_runs);
+    for (int i=0; i<n_runs; i++){
+        struct Output out = inner(argc, argv);
+        srand(rander);
+        rander=hash(rander);
+        mae[i]=out.mae;
+        rmse[i]=out.rmse;
+    }
+    printf("MAE: %02.2f %c %02.2f\n", _mean(mae, n_runs), 241, _std(mae, n_runs));
+    printf("RMSE: %02.2f %c %02.2f\n", _mean(rmse, n_runs), 241, _std(rmse, n_runs));
+    free(mae);
+    free(rmse);
+    return 1;
+}
+struct Output inner(int argc, char *argv[]) {
+    float p = atof(argv[2]);
+    float decay_rate = atof(argv[3]);
+    struct Output out;
+    out.mae = 0.0/0.0;
+    out.rmse = 0.0/0.0;
+    if ((p<0)||(p>1)){
+        fprintf(stderr, "corruption rate must be between 0 and 1\n");
+        return out;
+    }
+    if ((decay_rate<0)||(decay_rate>1)){
+        fprintf(stderr, "ewm coeff must be between 0 and 1\n");
+        return out;
+    }
     FILE *file;
 
     fopen_s(&file, argv[1], "r"); // Open the file specified in the command-line argument
     if (!file) {
         perror("Error opening file");
-        return 1;
+        return out;
     }
     long long timestamp;
     float target;
@@ -414,7 +485,7 @@ int main(int argc, char *argv[]) {
         if (DEBUGLEVEL) printf(" === ****** ***** ===\n");
         if ((nans[0]!=false) && (iters>1+W)){
             float pred = special_mean(interps[iters%W]);
-            if (DEBUGLEVEL) printf("%02.2f %02.2f\n", truths[0], pred);
+            if (DEBUGLEVEL) printf("truth:pred = %02.2f %02.2f\n", truths[0], pred);
             if (is_nan(pred)){
                 if (PRINT) printf("%lld,nan\n",timestamps[0]);
                 totalUninterpolated++;
@@ -424,8 +495,8 @@ int main(int argc, char *argv[]) {
             totalSquaredError+=sqr(pred-truths[0]);
             totalAbsoluteError+=fabsf(pred-truths[0]);
         } else {
-            if (DEBUGLEVEL) printf("%02.2f -\n", truths[0]);
-	    if (PRINT) printf("%lld,%0.2f\n",timestamps[0],ewms[0]);
+            if (DEBUGLEVEL) printf("truth:- = %02.2f -\n", truths[0]);
+            if (PRINT) printf("%lld, %0.2f\n",timestamps[0],ewms[0]);
         }
 
     }
@@ -435,15 +506,9 @@ int main(int argc, char *argv[]) {
     float rmse = sqrtf(totalSquaredError/((float)totalNans));
     float mae = totalAbsoluteError/((float)totalNans);
     if (EVAL) {
-        printf("iters: %d\n", iters);
-        printf("data mean: %lf\n", sigMean);
-        printf("data std: %lf\n", sigStd);
-        printf("NaNs/samples: %02.2f%%\n", 100*(float)totalNans/(float)iters);
-        printf("uninterpolated/samples: %02.2f%%\n", 100*(float)totalUninterpolated/(float)iters);
-        printf("uninterpolated/NaNs: %02.2f%%\n", 100*(float)totalUninterpolated/(float)totalNans);
-        printf("RMSE: %02.5f\n", rmse);
-        printf("MAE: %02.5f\n", mae);
+        out.rmse=rmse;
+        out.mae=mae;
     }
-    return 0;
+    return out;
 }
 
