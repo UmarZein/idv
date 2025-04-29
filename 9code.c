@@ -313,25 +313,25 @@ float _mean(const float *x, const int n){
     return mean;
 }
 //TODO: _mean and _std takes an array of error metric. however they contain NaN. find out why and what to do
-float _std(const float *x, const int _n){
-    if (_n<=1){
+float _std(const float *x, const int n){
+    if (n<=1){
         return 0;
     }
     double mean=0;
     double var=0;
-    const double n = (double)_n;
-    double n_nans = 0;
+    long long n_nans = 0;
     for (int i=0;i<n;++i){
         if (is_nan(x[i])){
-            n_nans+=1.0;
+            n_nans++;
             continue;
         }
         const double xi = x[i];
         const double delta = xi-mean;
-        mean += delta / ((double)i-n_nans+1.0);
+        mean += delta / ((double)(i-n_nans+1));
         var += delta*(xi-mean);
     }
-    return (float)(var/(n-1.0));
+    var/=(double)n-1.0;
+    return sqrtf((float)var);
 }
 unsigned int hash(const unsigned int x){
     unsigned int h=x;
@@ -406,8 +406,12 @@ struct Output inner(int argc, char *argv[]) {
     bool interpolable[W] = { [0 ... W-1] = false };
     float stds[W] = { [0 ... W-1] = 0.0 };
     float varias[W] = { [0 ... W-1] = 0.0 };//variabilitas
-    float interps[W][W] = { [0 ... W-1] = { [0 ... W-1] = (0.0/0.0) }};
-
+    float interps[W][W];
+    for (int i=0;i<W;i++){
+        for (int j=0;j<W;j++){
+            interps[i][j]=0.0/0.0;
+        }
+    }
     float totalSquaredError = 0.0;
     float totalAbsoluteError = 0.0;
     double totalSignal = 0.0;
