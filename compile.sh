@@ -1,4 +1,5 @@
 #!/usr/bin/bash
+gcc -o p0 0code.c;
 gcc -o p2 2code.c;
 gcc -o p3 3code.c;
 gcc -o p4 4code.c;
