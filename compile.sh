@@ -6,3 +6,4 @@ gcc -o p5 5code.c;
 gcc -o p6 6code.c;
 gcc -o p7 7code.c;
 gcc -o p8 8code.c;
+gcc -o p9 9code.c;
