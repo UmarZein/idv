@@ -89,7 +89,7 @@ void predict_pf(void *_state, float* out, const float* X, const float* Y, const 
             for (int deg=1; deg<n_non_missing; deg++){
                 bool closestMask[W] = {false};
                 //mask, N, i,nans
-                assignClosestMask(closestMask, deg+1, i, nansOrAnomalies);
+                assignClosestMask(closestMask, deg+1, i, X, nansOrAnomalies);
                 prediction += state->weights[deg]*interpLagrange(X, ewmas, closestMask, (float)i);
             }
             out[i]=prediction;
@@ -120,10 +120,6 @@ void search_eval_pf(void *_state){
             state->best_weights[i] = state->best_contender_weights[i];
         }
         state->best_weights_score = state->best_contender_score;
-        printf("amp: %f\n", state->amp);
-        printf("best score: %f\n", state->best_weights_score);
-        aprintf(state->best_weights);
-        printf("----------\n");
     }
 }
 
@@ -155,6 +151,7 @@ void finish_search_pf(void *_state){
     }
     printf("done searching! weights: ");
     aprintf(state->weights);
+    printf("amp: %f\n", state->amp);
 }
 
 PolynomialModel create_polymodel(const Flags flags){

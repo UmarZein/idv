@@ -91,7 +91,7 @@ void predict_ph(void *_state, float* out, const float* X, const float* Y, const 
             else for (int deg=1; deg<n_non_missing; deg++){
                 bool closestMask[W] = {false};
                 //mask, N, i,nans
-                assignClosestMask(closestMask, deg+1, i, nansOrAnomalies);
+                assignClosestMask(closestMask, deg+1, i, X, nansOrAnomalies);
                 prediction += state->weights[deg]*interpLagrange(X, ewmas, closestMask, (float)i);
             }
             out[i]=prediction;
@@ -122,10 +122,6 @@ void search_eval_ph(void *_state){
             state->best_weights[i] = state->best_contender_weights[i];
         }
         state->best_weights_score = state->best_contender_score;
-        printf("amp: %f\n", state->amp);
-        printf("best score: %f\n", state->best_weights_score);
-        aprintf(state->best_weights);
-        printf("----------\n");
     }
 }
 
@@ -157,6 +153,7 @@ void finish_search_ph(void *_state){
     }
     printf("done searching! weights: ");
     aprintf(state->weights);
+    printf("amp: %f\n", state->amp);
 }
 
 PolynomialHybrid create_polyhybrid(const Flags flags){
@@ -167,7 +164,7 @@ PolynomialHybrid create_polyhybrid(const Flags flags){
     fill0(model.weights);
 
     model.amp=1.0;
-    model.persistence=0.8;
+    model.persistence=flags.persistence;
     fill0(model.best_weights);
     model.best_weights_score=-9e10f;
     fill0(model.best_contender_weights);

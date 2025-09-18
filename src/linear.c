@@ -14,7 +14,7 @@ void linear_predict(void *state, float* out, const float* X, const float* Y, con
             L=-1;
             R=-1;
             bool closestMask[W] = {false};
-            assignClosestMask(closestMask, 2, i, nans);
+            assignClosestMask(closestMask, 2, i, X, nans);
             for (int j=0; j<W; j++){
                 if (!closestMask[j]) if (L!=-1) R=j;
                 if (!closestMask[j]) if (L==-1) L=j;

@@ -17,6 +17,7 @@ struct Output test(const Flags flags, ScanIter *iterator, Algorithm *alg) {
     float target;
     
     float truths[W] = {0.0};
+    float values[W] = {0.0};
     float timestamps[W] = {0.0};
     for (int i=0;i<W;i++){
         timestamps[i]=(float)(i);
@@ -47,10 +48,15 @@ struct Output test(const Flags flags, ScanIter *iterator, Algorithm *alg) {
                 generate_random_mask(nans, flags.p);
                 n_nans = countTrue(nans);            
             }
+            for (int i=0;i<W;i++){
+                if (nans[i]){
+                    values[i]=0.0/0.0;
+                } else values[i]=truths[i];
+            }
 
             // void, float, const float, const float, const bool
             float out[W] = {};
-            alg->predict(alg, out, timestamps, truths, nans);
+            alg->predict(alg, out, timestamps, values, nans);
             
             // skipping to MILI-UD
             for (int i=0; i<W; i++){

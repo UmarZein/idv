@@ -8,6 +8,7 @@ typedef struct{
     float p;
     float mad_coeff;
     float ewma_decay_rate;
+    float persistence;
     int n_runs;
     int n_searches;
     int base_search_iters;
@@ -19,6 +20,11 @@ bool startswith(const char *str, const char *prefix){
 }
 #define Err -1
 #define Ok 1
+/*
+-f ../banten_rr.csv -p 0.3 --mad_coeff 3.5 --n_runs 3000\
+ --n_searches 1000 --base_search_iters 5 --search_step_interval 15\
+ --ewma_decay_rate 0.5 --persistence 0.7
+*/
 int assignFlags(Flags *f, int argc, char *argv[]){
     for (int i=1; i<argc; i++){
         if (strcmp(argv[i], "-f")==0){
@@ -28,7 +34,7 @@ int assignFlags(Flags *f, int argc, char *argv[]){
         }
         if (strcmp(argv[i], "-p")==0){
             i++;
-            float p = atof(argv[i]);
+            const float p = atof(argv[i]);
             if ((p<0)||(p>1)){
                 fprintf(stderr, "corruption rate must be between 0 and 1\n");
                 return Err;
@@ -38,7 +44,7 @@ int assignFlags(Flags *f, int argc, char *argv[]){
         }
         if (strcmp(argv[i], "--mad_coeff")==0){
             i++;
-            float mad_coeff = atof(argv[i]);
+            const float mad_coeff = atof(argv[i]);
             if ((mad_coeff<=0)){
                 fprintf(stderr, "mad coefficient should be higher than 0\n");
                 return Err;
@@ -68,12 +74,22 @@ int assignFlags(Flags *f, int argc, char *argv[]){
         }
         if (strcmp(argv[i], "--ewma_decay_rate")==0){
             i++;
-            float ewma_decay_rate = atof(argv[i]);
+            const float ewma_decay_rate = atof(argv[i]);
             if ((ewma_decay_rate<0)||(ewma_decay_rate>1)){
                 fprintf(stderr, "ewma decay rate must be between 0 and 1\n");
                 return Err;
             }
             f->ewma_decay_rate=ewma_decay_rate;
+            continue;
+        }
+        if (strcmp(argv[i], "--persistence")==0){
+            i++;
+            const float persistence = atof(argv[i]);
+            if ((persistence<0)||(persistence>1)){
+                fprintf(stderr, "persistence should be between 0 and 1\n");
+                return Err;
+            }
+            f->persistence=persistence;
             continue;
         }
     }

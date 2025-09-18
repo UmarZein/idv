@@ -18,7 +18,7 @@ int cmpCandidates(const void *a, const void *b) {
     return ca->idx - cb->idx;       // tie-break: smaller index first
 }
 
-void assignClosestMask(bool *mask, const int N, const int i, const bool *nans) {
+void assignClosestMask(bool *mask, const int N, const int i, const float *X, const bool *nans) {
     // 1. clear mask
     for (int j = 0; j < W; j++) {
         mask[j] = true;
@@ -30,7 +30,7 @@ void assignClosestMask(bool *mask, const int N, const int i, const bool *nans) {
     for (int j = 0; j < W; j++) {
         if (!nans[j]) { // only valid (non-nan)
             candidates[count].idx = j;
-            candidates[count].dist = abs(j - i);
+            candidates[count].dist = abs(X[j] - X[i]);
             count++;
         }
     }
