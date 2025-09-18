@@ -1,5 +1,6 @@
 #include "./utils.c"
 #include <time.h>
+#include "./fmemopen.c"
 struct Output{
     float mae;
     float rmse;
@@ -39,16 +40,16 @@ int classic_main(int argc, char *argv[]) {
     rewind(fp);
 
     // read into buffer
-    char *buffer = malloc(size+1);
+    char *buffer = (char *)malloc(size+1);
     fread(buffer, 1, size, fp);
     buffer[size] = '\0';
     fclose(fp);
 
 
 
-    float *mae = malloc(sizeof(float)*n_runs);
-    float *rmse = malloc(sizeof(float)*n_runs);
-    float *ratio_solved = malloc(sizeof(float)*n_runs);
+    float *mae = (float *)malloc(sizeof(float)*n_runs);
+    float *rmse = (float *)malloc(sizeof(float)*n_runs);
+    float *ratio_solved = (float *)malloc(sizeof(float)*n_runs);
     for (int i=0; i<n_runs; i++){
         // open memory buffer as FILE*
         FILE *memfp = fmemopen(buffer, size, "r");

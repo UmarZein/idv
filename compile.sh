@@ -12,16 +12,17 @@ set -x
 CR=0.3
 MADK=1.4826
 NRUNS=100000
+CC=gcc
 # gcc -o u1 u1code.c -lm;
 # ./u1 sample.txt ${CR} ${MADK} ${NRUNS};
 # gcc -o u1c cleaned_code.c -lm;
 # ./u1c sample.txt ${CR} ${MADK} ${NRUNS};
 # gcc -o u0 u0code.c -lm;
 # ./u0 sample.txt ${CR} ${MADK} ${NRUNS};
-gcc -o u3 u3code.c -lm;
-./u3 sample.txt ${CR} ${MADK} ${NRUNS};
-gcc -o u6 u6code.c -lm;
-./u6 sample.txt ${CR} ${MADK} ${NRUNS};
-gcc -o u4 u4code.c -lm;
-./u4 sample.txt ${CR} ${MADK} ${NRUNS};
+${CC} -o u3 u3code.c -lm;
+./u3.exe sample.txt ${CR} ${MADK} ${NRUNS};
+${CC} -o u6 u6code.c -lm;
+./u6.exe sample.txt ${CR} ${MADK} ${NRUNS};
+${CC} -o u4 u4code.c -lm;
+./u4.exe sample.txt ${CR} ${MADK} ${NRUNS};
 set +x

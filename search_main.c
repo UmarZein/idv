@@ -1,5 +1,6 @@
 #include "./utils.c"
 #include <time.h>
+#include "./fmemopen.c"
 struct Output{
     float mae;
     float rmse;
@@ -43,7 +44,7 @@ int search_main(int argc, char *argv[]) {
     rewind(fp);
 
     // read into buffer
-    char *buffer = malloc(size+1);
+    char *buffer = (char*)malloc(size+1);
     fread(buffer, 1, size, fp);
     buffer[size] = '\0';
     fclose(fp);
@@ -53,8 +54,8 @@ int search_main(int argc, char *argv[]) {
     float best_weights_error = 1e300;
     float contendor_weights[W] = {0.0};
     float contendor_weights_error = 1e300;
-    float *search_mae = malloc(sizeof(float)*BASE_SEARCH_ITERS);
-    float *search_rmse = malloc(sizeof(float)*BASE_SEARCH_ITERS);
+    float *search_mae = (float *)malloc(sizeof(float)*BASE_SEARCH_ITERS);
+    float *search_rmse = (float *)malloc(sizeof(float)*BASE_SEARCH_ITERS);
     for (int search=0; search<n_searches; search++){
         if ((search%SEARCH_STEP_INTERVAL)==0){
             amp *= DECAY_RATE;

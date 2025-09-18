@@ -31,7 +31,7 @@ void normal_distribution_init(prob_dist *pd){
 }
 prob_dist* normal_distribution_create()
 {
-    prob_dist* pd = malloc(sizeof(prob_dist));
+    prob_dist* pd = (prob_dist*) malloc(sizeof(prob_dist));
 
     pd->count = 0;
     pd->items = NULL;
@@ -79,11 +79,11 @@ void normal_distribution_calculate(int* data, int size, prob_dist* pd)
             // first item
             if(pd->items == NULL)
             {
-                pd->items = malloc(sizeof(prob_dist_item));
+                pd->items = (prob_dist_item*) malloc(sizeof(prob_dist_item));
             }
             else
             {
-                pd->items = realloc(pd->items, sizeof(prob_dist_item) * pd->count);
+                pd->items = (prob_dist_item*)realloc(pd->items, sizeof(prob_dist_item) * pd->count);
             }
 
             pd->items[pd->count - 1].value = data[i];

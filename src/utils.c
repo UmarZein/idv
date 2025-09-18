@@ -472,6 +472,11 @@ float get_rightmost_number(const float arr[W], const bool filter[W]){
     }
     return 0.0/0.0;
 }
+void fill0(float arr[W]){
+    for (int i=0;i<W;i++){
+        arr[i]= 0.0;
+    }
+}
 float get_leftmost_number(const float arr[W], const bool filter[W]){
     for (int i=0; i<W; i++){
         if (filter) continue;
@@ -599,3 +604,4 @@ void sort_masked(float vals[], bool nan_mask[]) {
 }
 
 #endif
+
